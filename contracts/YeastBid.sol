@@ -41,10 +41,17 @@ contract YeastBid {
     _;
   }
 
+  modifier third_phase() {
+    require(
+      phase_number == 3,
+      "This function is restricted to third phase"
+    );
+    _;
+  }
 
 
-  constructor (address owner, uint256 amount, uint bidding_phase_end) {
-    owner = owner;
+  constructor (uint256 amount, uint bidding_phase_end) {
+    owner = msg.sender;
     amount = amount;
     bidding_phase_end = bidding_phase_end;
     phase_number = 1;
@@ -73,7 +80,7 @@ contract YeastBid {
     last_phase_start = block.timestamp;
   }
 
-  function evaluateBids() private {
+  function evaluateBids() private restricted {
 
   }
 }
