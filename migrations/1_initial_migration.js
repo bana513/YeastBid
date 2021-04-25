@@ -1,6 +1,5 @@
-const Migrations = artifacts.require("Migrations");
-//var SimpleBank = artifacts.require("./SimpleBank.sol");
+const YeastBid = artifacts.require("YeastBid");
 
 module.exports = function (deployer) {
-  deployer.deploy(Migrations);
+  deployer.deploy(YeastBid);
 };
