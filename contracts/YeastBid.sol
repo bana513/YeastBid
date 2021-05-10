@@ -9,24 +9,27 @@ contract YeastBid {
   }
 
   //mapping is not iterable must store keys seperately
-  mapping (address => uint256) private initial_bids;
+  mapping (address => uint256) public initial_bids;
   mapping (address => bids) public revealed_bids;
 
-  //searchin in a list is very inefficient and costly, we store in mapping instead as a bool to see if an array contains an element
-  //https://ethereum.stackexchange.com/questions/27510/solidity-list-contains/27518
+  // Search in a list is very inefficient and costly, we store in mapping instead as a bool to see if an array contains an element
+  // https://ethereum.stackexchange.com/questions/27510/solidity-list-contains/27518
   mapping (address => bool) private initial_bidders_helper;  // Helper to save addresses only once
   mapping (address => bool) public revealed_bidders_helper;
+  
+  // Create a mapping for accepted bidders to efficiently find unaccepted revealed bidders
+  mapping (address => bool) private _accepted_bidders;
 
-  address[] initial_bidders;
-  address[] revealed_bidders;
-  address[] accepted_bidders;
+  address[] private initial_bidders;
+  address[] public revealed_bidders;
+  address[] public accepted_bidders;
 
-  uint blocks;  // Blocks of yeast
-  uint start_time;  // Phase 3's timestamp
-  uint life_time; // In seconds
-  address owner;
+  uint public blocks;  // Blocks of yeast
+  uint public start_time;  // Phase 3's timestamp
+  uint public life_time; // In seconds
+  address public owner;
   uint8 public phase;
-  uint cum_sum;
+  uint public cum_sum;
 
   //sets the lifetime of phase 3 of contract
   constructor (uint _blocks, uint _life_time) {
@@ -113,9 +116,6 @@ contract YeastBid {
     require( new_amount < blocks && cum_sum < new_cum_sum);
     accepted_bidders = _chosen_bids;
   }
-  
-  // Create a mapping for accepted bidders to efficiently find unaccepted revealed bidders
-  mapping (address => bool) private _accepted_bidders;
     
   function pay_back() private {
     require(phase == 4, "Can pay back only when bidding ended.");
