@@ -1,6 +1,7 @@
 const YeastBid = artifacts.require("YeastBid");
 
 contract('YeastBid', (accounts) => {
+    
     it("Deployable test", async () => {
         const contract = await YeastBid.deployed(
             10, // blocks of yeast
@@ -18,54 +19,64 @@ contract('YeastBid', (accounts) => {
         console.log("Account #1 balance: ", balance);
         assert(balance == web3.utils.toWei('100', 'ether'), balance);
     });
+    
 
-    it("Successfull bidding", async () => {
-        // Deployed from account[0]
+    it("Single bidder", async () => {
+        owner = accounts[0];
+        bidder = accounts[1];
+
         const contract = await YeastBid.deployed(
             10, // blocks of yeast
-            120 // sec for phase 3
+            120, // sec for phase 3
+            { from: owner }
         );
-        owner = accounts[0];
-        bidder1 = accounts[1];
-        bidder2 = accounts[2];
         
-        console.log("bidder1: ", bidder1);
+        console.log("bidder: ", bidder);
 
         // Start bidding
-        contract.set_phase(1);
+        await contract.set_phase(1, { from: owner });
 
-        // Make first bid
-        _bid1_hash = await contract.hash_it.call(
+        // Make bid
+        _bid_hash = await contract.hash_it.call(
             123,
             2,
             web3.utils.toWei('1', 'ether'),
-            {from: bidder1}
+            {from: bidder}
         );
-        const bid1_hash = _bid1_hash.toString();
-        
+        const bid_hash = _bid_hash.toString();
+        console.log("bid_hash: ", bid_hash);
+        await contract.register_bid_hash(bid_hash, { from: bidder });
 
-        console.log("bid1_hash: ", bid1_hash);
+        // Step into revealing phase
+        await contract.set_phase(2, { from: owner });
+        console.log("phase: ", (await contract.phase.call()).toString());
+
+        // Reveal bid
+        await contract.reveale_bid.call(
+            123,
+            2,
+            web3.utils.toWei('1', 'ether'),
+            {from: bidder, value: web3.utils.toWei('2', 'ether')}
+        );
+        console.log("reveale_bid called");
+        
+        console.log("Revealed bidders: ", await contract.get_revealed_bidders.call());
+
+        // Step into final phase
+        await contract.final_phase([bidder], { from: owner });
+        console.log("phase: ", (await contract.phase.call()).toString());
+
+        // Manually end contract
+        await contract.set_phase(4, { from: owner });
+        console.log("phase: ", (await contract.phase.call()).toString());
+
+        // Check profit
+        const profit = (await contract.cum_sum.call());
+        console.log("profit: ", profit);
+
+        assert.equal(web3.utils.toWei('2', 'ether'), profit, "Wrong profit");
 
     });
 
     
 });
-
-/*
-contract('YeastBid', function(accounts) {
-    var sb; // To store the instance when running
-
-    // Test case 1
-    it("Test initial balance", function() {
-        return YeastBid.deployed(
-            10, // blocks of yeast
-            120 // sec for phase 3
-        ).then(function(instance) {
-            sb = instance;
-            return sb.getBalance({ from: accounts[0] });
-        }).then(function(x) {
-            assert.equal(web3.utils.toWei('100', 'ether'), x, "Wrong initial balance");
-        });
-    });
-});
-*/

@@ -3,14 +3,14 @@ pragma solidity >=0.7.0;
 
 contract YeastBid {
 
-  struct bids{
+  struct bid{
     uint amount;
     uint price;
   }
 
   //mapping is not iterable must store keys seperately
   mapping (address => uint256) public initial_bids;
-  mapping (address => bids) public revealed_bids;
+  mapping (address => bid) public revealed_bids;
 
   // Search in a list is very inefficient and costly, we store in mapping instead as a bool to see if an array contains an element
   // https://ethereum.stackexchange.com/questions/27510/solidity-list-contains/27518
@@ -68,13 +68,14 @@ contract YeastBid {
     return salt+quantity+price;
   }
 
-  function reveale_bids(uint salt, uint quantity, uint price) public payable {
-    require(phase == 2 && initial_bids[msg.sender] == hash_it(salt,quantity,price), "Not in bid revealing phase.");
+  function reveale_bid(uint salt, uint quantity, uint price) public payable {
+    require(phase == 2, "Not in bid revealing phase.");
+    require(initial_bids[msg.sender] == hash_it(salt,quantity,price), "Wrong hash.");
     
     // Value of bids should be payed
     require(msg.value >= quantity * price, "Not enough payed.");
     
-    revealed_bids[msg.sender] = bids(quantity,price);
+    revealed_bids[msg.sender] = bid(quantity,price);
     if (!revealed_bidders_helper[msg.sender]){
       revealed_bidders_helper[msg.sender] = true;
       revealed_bidders.push(msg.sender);
@@ -136,4 +137,14 @@ contract YeastBid {
   function get_time() public view returns(uint) {
       return block.timestamp;
   }
+
+  
+  function get_revealed_bidders() public view returns(address[] memory) {
+    return revealed_bidders;
+  }
+  
+  function get_accepted_bidders() public view returns(address[] memory) {
+    return accepted_bidders;
+  }
+  
 }
