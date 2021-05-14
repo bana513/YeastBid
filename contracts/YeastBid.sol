@@ -40,7 +40,7 @@ contract YeastBid {
   }
 
   //phases:
-  // 0: cant do nothing
+  // 0: cant do anyhing
   // 1: register hashes
   // 2: reveal hashes
   // 3: owner choses a set, and begins a timer
@@ -92,7 +92,7 @@ contract YeastBid {
       amount += revealed_bids[_chosen_bids[index]].amount;
     }
 
-    require(amount < blocks);
+    require(amount <= blocks);
     set_phase(3);
     start_time = block.timestamp;
     accepted_bidders = _chosen_bids;
