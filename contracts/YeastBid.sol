@@ -16,7 +16,7 @@ contract YeastBid {
   // https://ethereum.stackexchange.com/questions/27510/solidity-list-contains/27518
   mapping (address => bool) private initial_bidders_helper;  // Helper to save addresses only once
   mapping (address => bool) public revealed_bidders_helper;
-  
+
   // Create a mapping for accepted bidders to efficiently find unaccepted revealed bidders
   mapping (address => bool) private _accepted_bidders;
 
@@ -55,7 +55,7 @@ contract YeastBid {
   function register_bid_hash(uint _hash) public{
     require(phase == 1);
     initial_bids[msg.sender] = _hash;
-    
+
     // Save bidder's address in list only once
     if (!initial_bidders_helper[msg.sender]){
       initial_bidders_helper[msg.sender] = true;
@@ -65,16 +65,16 @@ contract YeastBid {
 
   //https://ethereum.stackexchange.com/questions/65076/match-web3py-hashing-function-to-solidity-hashing-function
   function hash_it(uint salt, uint quantity, uint price) public pure returns(uint) {
-    return salt+quantity+price;
+    return keccak256(salt+quantity+price);
   }
 
   function reveale_bid(uint salt, uint quantity, uint price) public payable {
     require(phase == 2, "Not in bid revealing phase.");
     require(initial_bids[msg.sender] == hash_it(salt,quantity,price), "Wrong hash.");
-    
+
     // Value of bids should be payed
     require(msg.value >= quantity * price, "Not enough payed.");
-    
+
     revealed_bids[msg.sender] = bid(quantity,price);
     if (!revealed_bidders_helper[msg.sender]){
       revealed_bidders_helper[msg.sender] = true;
@@ -100,14 +100,14 @@ contract YeastBid {
 
   function disprove(address[] memory _chosen_bids) public {
     require(phase == 3, "Not in dispoval phase.");
-    
+
     if (block.timestamp >= life_time+start_time){
         // Bidding ended
         // No need for ownership
         phase = 4;
         pay_back();
     }
-    
+
     uint new_cum_sum = 0;
     uint new_amount = 0;
     for (uint256 index = 0; index < _chosen_bids.length; index++) {
@@ -117,10 +117,10 @@ contract YeastBid {
     require( new_amount < blocks && cum_sum < new_cum_sum);
     accepted_bidders = _chosen_bids;
   }
-    
+
   function pay_back() private {
     require(phase == 4, "Can pay back only when bidding ended.");
-      
+
     // Send the payed amount back to those who did not win
     for (uint256 index = 0; index < accepted_bidders.length; index++) {
         _accepted_bidders[accepted_bidders[index]] = true;
@@ -138,13 +138,13 @@ contract YeastBid {
       return block.timestamp;
   }
 
-  
+
   function get_revealed_bidders() public view returns(address[] memory) {
     return revealed_bidders;
   }
-  
+
   function get_accepted_bidders() public view returns(address[] memory) {
     return accepted_bidders;
   }
-  
+
 }
