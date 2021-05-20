@@ -53,7 +53,7 @@ contract YeastBid {
 
   //1 address can register only one bid
   function register_bid_hash(uint _hash) public{
-    require(phase == 1);
+    require(phase == 1, "Not in bid registering phase.");
     initial_bids[msg.sender] = _hash;
     
     // Save bidder's address in list only once
@@ -118,7 +118,7 @@ contract YeastBid {
     accepted_bidders = _chosen_bids;
   }
     
-  function pay_back() private {
+  function pay_back() public {
     require(phase == 4, "Can pay back only when bidding ended.");
       
     // Send the payed amount back to those who did not win
