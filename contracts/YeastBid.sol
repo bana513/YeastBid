@@ -64,7 +64,7 @@ contract YeastBid {
   }
 
   //https://ethereum.stackexchange.com/questions/65076/match-web3py-hashing-function-to-solidity-hashing-function
-  function hash_it(uint salt, uint quantity, uint price) public pure returns(uint) {
+  function hash_it(uint salt, uint quantity, uint price) public pure returns(bytes32 result) {
     return keccak256(salt+quantity+price);
   }
 
