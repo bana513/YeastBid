@@ -9,7 +9,7 @@ contract YeastBid {
   }
 
   //mapping is not iterable must store keys seperately
-  mapping (address => uint256) public initial_bids;
+  mapping (address => bytes32) public initial_bids;
   mapping (address => bid) public revealed_bids;
 
   // Search in a list is very inefficient and costly, we store in mapping instead as a bool to see if an array contains an element
@@ -52,7 +52,7 @@ contract YeastBid {
   }
 
   //1 address can register only one bid
-  function register_bid_hash(uint _hash) public{
+  function register_bid_hash(bytes32 _hash) public{
     require(phase == 1, "Not in bid registering phase.");
     initial_bids[msg.sender] = _hash;
 
@@ -63,9 +63,14 @@ contract YeastBid {
     }
   }
 
+  function toBytes(uint256 x) private pure returns (bytes memory b) {
+      b = new bytes(32);
+      assembly { mstore(add(b, 32), x) }
+  }
+
   //https://ethereum.stackexchange.com/questions/65076/match-web3py-hashing-function-to-solidity-hashing-function
   function hash_it(uint salt, uint quantity, uint price) public pure returns(bytes32 result) {
-    return keccak256(salt+quantity+price);
+    return keccak256(toBytes(salt+quantity+price));
   }
 
   function reveale_bid(uint salt, uint quantity, uint price) public payable {
