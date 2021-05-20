@@ -124,6 +124,9 @@ contract YeastBid {
   }
 
   function pay_back() public {
+    if (block.timestamp >= life_time+start_time){
+        phase = 4;
+    }
     require(phase == 4, "Can pay back only when bidding ended.");
 
     // Send the payed amount back to those who did not win
